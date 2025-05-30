@@ -6,9 +6,17 @@ import (
 	"math/big"
 )
 
+// パスワードポリシー
+const (
+	PolicyAllChars = iota // すべての文字種を使用
+	PolicyAlphaNum        // 英数字のみ
+)
+
 // 長さlengthのパスワードを生成する
-// upper, lower, number, symbolをそれぞれ1文字以上含む
-func MakePassword(length int) (string, error) {
+// policyに応じて使用する文字種を切り替える
+// upper, lower, numberをそれぞれ1文字以上含む
+// PolicyAllCharsの場合はsymbolも1文字以上含む
+func MakePassword(length int, policy int) (string, error) {
 	if length < 4 {
 		return "", errors.New("password length must be at least 4")
 	}
@@ -32,15 +40,28 @@ func MakePassword(length int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	symbol, err := randomChar(symbols)
-	if err != nil {
-		return "", err
+
+	var symbol rune
+	var chars string
+	var requiredChars int
+
+	if policy == PolicyAllChars {
+		symbol, err = randomChar(symbols)
+		if err != nil {
+			return "", err
+		}
+		chars = uppers + lowers + numbers + symbols
+		requiredChars = 4
+	} else if policy == PolicyAlphaNum {
+		chars = uppers + lowers + numbers
+		requiredChars = 3
+	} else {
+		return "", errors.New("invalid policy")
 	}
 
-	chars := uppers + lowers + numbers + symbols
 	charsLen := len(chars)
-	tmp := make([]byte, length-4)
-	for i := 0; i < length-4; i++ {
+	tmp := make([]byte, length-requiredChars)
+	for i := 0; i < length-requiredChars; i++ {
 		index, err := randInt(charsLen)
 		if err != nil {
 			return "", err
@@ -48,7 +69,12 @@ func MakePassword(length int) (string, error) {
 		tmp[i] = chars[index]
 	}
 
-	password := string(upper) + string(lower) + string(number) + string(symbol) + string(tmp)
+	var password string
+	if policy == PolicyAllChars {
+		password = string(upper) + string(lower) + string(number) + string(symbol) + string(tmp)
+	} else {
+		password = string(upper) + string(lower) + string(number) + string(tmp)
+	}
 	return shuffle(password), nil
 }
 

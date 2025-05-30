@@ -11,6 +11,7 @@ import (
 )
 
 var length int
+var policy string
 
 // passCmd represents the pass command
 var passCmd = &cobra.Command{
@@ -23,7 +24,19 @@ var passCmd = &cobra.Command{
 			fmt.Println("length must be 8 or more")
 			return
 		}
-		password, err := password.MakePassword(length)
+
+		var policyInt int
+		switch policy {
+		case "all":
+			policyInt = password.PolicyAllChars
+		case "alphanum":
+			policyInt = password.PolicyAlphaNum
+		default:
+			fmt.Println("invalid policy. use 'all' or 'alphanum'")
+			return
+		}
+
+		password, err := password.MakePassword(length, policyInt)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -36,4 +49,5 @@ func init() {
 	rootCmd.AddCommand(passCmd)
 
 	passCmd.Flags().IntVarP(&length, "length", "l", 8, "password length")
+	passCmd.Flags().StringVarP(&policy, "policy", "p", "all", "password policy (all or alphanum)")
 }
