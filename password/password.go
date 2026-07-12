@@ -25,7 +25,7 @@ func MakePassword(length int, policy int) (string, error) {
 		uppers  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		lowers  = "abcdefghijklmnopqrstuvwxyz"
 		numbers = "0123456789"
-		symbols = "!#$%&'()*+,-./:;<=>?@[]^_`{|}~"
+		symbols = "!#$%&()*+,-./:;<=>?@[]^_`{|}~"
 	)
 
 	upper, err := randomChar(uppers)
