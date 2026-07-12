@@ -52,6 +52,32 @@ func TestZipFolder(t *testing.T) {
 	}
 }
 
+func TestZipFolderOutputInsideSource(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	srcDir := filepath.Join(tmpDir, "target")
+	mustMkdir(t, srcDir)
+	mustWrite(t, filepath.Join(srcDir, "a.txt"), "hello")
+
+	// 出力先zipが圧縮対象ディレクトリ内にあるケース
+	zipPath := filepath.Join(srcDir, "target.zip")
+	if err := ZipFolder(srcDir, zipPath); err != nil {
+		t.Fatalf("ZipFolder failed: %v", err)
+	}
+
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		t.Fatalf("failed to open zip: %v", err)
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		if f.Name == "target/target.zip" {
+			t.Error("output zip itself should be excluded from zip")
+		}
+	}
+}
+
 func TestZipFolderNotDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "file.txt")

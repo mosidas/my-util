@@ -18,8 +18,18 @@ const (
 // srcDirの内容をzipPathに圧縮する
 // zip内の各エントリはfilepath.Base(srcDir)をルートとする
 // .DS_Storeファイルと__MACOSXディレクトリを除外する
+// zipPathがsrcDir配下にある場合、そのzipファイル自身も除外する
 // シンボリックリンク等の通常ファイル以外はスキップする
 func ZipFolder(srcDir, zipPath string) error {
+	srcDir, err := filepath.Abs(srcDir)
+	if err != nil {
+		return err
+	}
+	zipPath, err = filepath.Abs(zipPath)
+	if err != nil {
+		return err
+	}
+
 	info, err := os.Stat(srcDir)
 	if err != nil {
 		return err
@@ -43,7 +53,7 @@ func ZipFolder(srcDir, zipPath string) error {
 		if d.IsDir() && d.Name() == macosxDir {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && d.Name() == dsStoreFile {
+		if !d.IsDir() && (d.Name() == dsStoreFile || path == zipPath) {
 			return nil
 		}
 
